@@ -1,11 +1,9 @@
-package com.example.makina.mojabanka;
+package com.fintech.timpla.mojabanka;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -14,19 +12,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.makina.mojabanka.dummy.MerchantInfo;
-
 import java.util.List;
 
 /**
- * An activity representing a list of Prodavci. This activity
+ * An activity representing a list of Merchants. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link ProdavacDetailActivity} representing
+ * lead to a {@link MerchantDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ProdavacListActivity extends AppCompatActivity {
+public class MerchantListActivity extends AppCompatActivity {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -37,7 +33,12 @@ public class ProdavacListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_prodavac_list);
+        setContentView(R.layout.activity_merchant_list);
+
+        // TODO remove this
+        for(int i = 0; i < 10; i++){
+            Merchant.save(new Merchant("Pera", "1"));
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -45,21 +46,11 @@ public class ProdavacListActivity extends AppCompatActivity {
             toolbar.setTitle(getTitle());
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        assert fab != null;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        View recyclerView = findViewById(R.id.prodavac_list);
+        View recyclerView = findViewById(R.id.merchant_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
 
-        if (findViewById(R.id.prodavac_detail_container) != null) {
+        if (findViewById(R.id.merchant_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
@@ -69,46 +60,49 @@ public class ProdavacListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(MerchantInfo.ITEMS));
+
+        List<Merchant> merchants = Merchant.listAll(Merchant.class);
+
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(merchants));
     }
 
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<MerchantInfo.Merchant> mValues;
+        private final List<Merchant> mValues;
 
-        public SimpleItemRecyclerViewAdapter(List<MerchantInfo.Merchant> items) {
+        public SimpleItemRecyclerViewAdapter(List<Merchant> items) {
             mValues = items;
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.prodavac_list_content, parent, false);
+                    .inflate(R.layout.merchant_list_content, parent, false);
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+            holder.mIdView.setText(String.valueOf(mValues.get(position).getId()));
+            holder.mContentView.setText(mValues.get(position).getName());
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
-                        arguments.putString(ProdavacDetailFragment.ARG_ITEM_ID, String.valueOf(holder.mItem.id));
-                        ProdavacDetailFragment fragment = new ProdavacDetailFragment();
+                        arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, String.valueOf(holder.mItem.getId()));
+                        MerchantDetailFragment fragment = new MerchantDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.prodavac_detail_container, fragment)
+                                .replace(R.id.merchant_detail_container, fragment)
                                 .commit();
                     } else {
                         Context context = v.getContext();
-                        Intent intent = new Intent(context, ProdavacDetailActivity.class);
-                        intent.putExtra(ProdavacDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+                        Intent intent = new Intent(context, MerchantDetailActivity.class);
+                        intent.putExtra(MerchantDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
 
                         context.startActivity(intent);
                     }
@@ -125,7 +119,7 @@ public class ProdavacListActivity extends AppCompatActivity {
             public final View mView;
             public final TextView mIdView;
             public final TextView mContentView;
-            public MerchantInfo.Merchant mItem;
+            public Merchant mItem;
 
             public ViewHolder(View view) {
                 super(view);

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">MojaBanka</string>
-    <string name="title_prodavac_list">Prodavci</string>
-    <string name="title_prodavac_detail">Prodavac Detail</string>
+    <string name="title_merchant_list">Merchants</string>
+    <string name="title_merchant_detail">Merchant Detail</string>
+    <string name="APPID">F0092EF9-936A-E40F-FFDA-947FE585F300</string>
+    <string name="SEC_KEY">040B9A44-E36F-6DB8-FF71-A49CB0E82200</string>
 </resources>

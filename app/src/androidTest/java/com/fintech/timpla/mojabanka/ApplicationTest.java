@@ -1,4 +1,4 @@
-package com.example.makina.mojabanka;
+package com.fintech.timpla.mojabanka;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

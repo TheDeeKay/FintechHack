@@ -1,4 +1,4 @@
-package com.example.makina.mojabanka;
+package com.fintech.timpla.mojabanka;
 
 import org.junit.Test;
 
