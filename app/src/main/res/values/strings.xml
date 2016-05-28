@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MojaBanka</string>
+    <string name="title_prodavac_list">Prodavci</string>
+    <string name="title_prodavac_detail">Prodavac Detail</string>
+</resources>
