@@ -17,6 +17,8 @@ import com.backendless.Backendless;
 import com.backendless.BackendlessCollection;
 import com.backendless.async.callback.AsyncCallback;
 import com.backendless.exceptions.BackendlessFault;
+import com.backendless.persistence.BackendlessDataQuery;
+import com.orm.SugarRecord;
 
 import java.util.List;
 
@@ -35,38 +37,25 @@ public class MerchantListActivity extends AppCompatActivity {
      * device.
      */
     private boolean mTwoPane;
+    private RecyclerView mRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_merchant_list);
 
-                Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (toolbar != null) {
             toolbar.setTitle(getTitle());
         }
 
-        final View recyclerView = findViewById(R.id.merchant_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        mRecyclerView = (RecyclerView) findViewById(R.id.merchant_list);
+        assert mRecyclerView != null;
+        setupRecyclerView((RecyclerView) mRecyclerView);
 
-        // Fetch all merchants present in the table
-        Backendless.Persistence.of(Merchant.class).find(
-                new AsyncCallback<BackendlessCollection<Merchant>>() {
-
-                    @Override
-                    public void handleResponse(BackendlessCollection<Merchant> response) {
-
-                        Merchant.saveInTx(response.getData());
-                        setupRecyclerView((RecyclerView) recyclerView);
-                    }
-
-                    @Override
-                    public void handleFault(BackendlessFault fault) {
-                        // TODO handle a fault here
-                    }
-                });
+        fetchMerchants();
+        fetchAuthorizations();
 
         if (findViewById(R.id.merchant_detail_container) != null) {
             // The detail container view will be present only in the
@@ -79,9 +68,48 @@ public class MerchantListActivity extends AppCompatActivity {
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
 
-        List<Merchant> merchants = Merchant.listAll(Merchant.class);
+        List<Merchant> merchants = SugarRecord.listAll(Merchant.class);
 
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(merchants));
+    }
+
+    // Fetch all merchants present in the table
+    private void fetchMerchants() {
+        Backendless.Persistence.of(Merchant.class).find(
+                new AsyncCallback<BackendlessCollection<Merchant>>() {
+
+                    @Override
+                    public void handleResponse(BackendlessCollection<Merchant> response) {
+
+                        SugarRecord.saveInTx(response.getData());
+                        setupRecyclerView(mRecyclerView);
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault fault) {
+                        // TODO handle a fault here
+                    }
+                });
+    }
+
+    // Fetch all authorizations tied to our user
+    private void fetchAuthorizations(){
+        BackendlessDataQuery query = new BackendlessDataQuery();
+        String whereClause = "BankAccount = " + "111"; //TODO set correct bank account
+        query.setWhereClause(whereClause);
+        Backendless.Persistence.of(Authorization.class).find(query,
+                new AsyncCallback<BackendlessCollection<Authorization>>() {
+                    @Override
+                    public void handleResponse(BackendlessCollection<Authorization> response) {
+                        SugarRecord.saveInTx(response.getData());
+                        setupRecyclerView(mRecyclerView);
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault fault) {
+                        // TODO handle this fault
+                    }
+                });
     }
 
     public class SimpleItemRecyclerViewAdapter
@@ -103,8 +131,17 @@ public class MerchantListActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            // TODO holder.mIdView.setText(String.valueOf(mValues.get(position).getId()));
+            // TODO holder.mIdView.setText(Merchant.valueOf(mValues.get(position).getId()));
             holder.mContentView.setText(mValues.get(position).getName());
+
+            List<Authorization> authorization = SugarRecord.find(Authorization.class, "Merchant_Id = ?",
+                    String.valueOf(holder.mItem.getObjectId()));
+
+            // TODO ulepšati ovo
+            if (authorization.size() < 1)
+                holder.mAuthorizedView.setText("Nije");
+            else
+                holder.mAuthorizedView.setText("Jeste");
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -137,6 +174,7 @@ public class MerchantListActivity extends AppCompatActivity {
             public final View mView;
             public final ImageView mIdView;
             public final TextView mContentView;
+            public final TextView mAuthorizedView;
             public Merchant mItem;
 
             public ViewHolder(View view) {
@@ -144,10 +182,11 @@ public class MerchantListActivity extends AppCompatActivity {
                 mView = view;
                 mIdView = (ImageView) view.findViewById(R.id.id);
                 mContentView = (TextView) view.findViewById(R.id.content);
+                mAuthorizedView = (TextView) view.findViewById(R.id.list_authorized);
             }
 
             @Override
-            public String toString() {
+            public java.lang.String toString() {
                 return super.toString() + " '" + mContentView.getText() + "'";
             }
         }

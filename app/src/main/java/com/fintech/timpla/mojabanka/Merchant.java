@@ -10,11 +10,11 @@ public class Merchant extends SugarRecord{
     private String Name;
     private String APIKey;
 
-    public Merchant(){
+    public Merchant() {
         // Required empty constructor
     }
 
-    public Merchant(String objectId, String name, String APIKey){
+    public Merchant(String objectId, String name, String APIKey) {
         this.objectId = objectId;
         this.Name = name;
         this.APIKey = APIKey;
