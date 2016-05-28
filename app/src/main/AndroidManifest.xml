@@ -42,6 +42,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MerchantListActivity" />
         </activity>
+        
+        <provider
+            android:authorities="com.fintech.timpla.mojabanka"
+            android:name=".DbProvider"/>
     </application>
 
 </manifest>
