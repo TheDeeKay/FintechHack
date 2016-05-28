@@ -5,7 +5,7 @@ import android.app.Application;
 import com.backendless.Backendless;
 import com.orm.SugarContext;
 
-public class mBankApplication extends Application{
+public class MBankApplication extends Application{
 
     @Override
     public void onCreate() {

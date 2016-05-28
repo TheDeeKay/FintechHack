@@ -4,7 +4,7 @@ import com.orm.SugarRecord;
 
 public class Merchant extends SugarRecord{
 
-    private String name;
+    private String Name;
     private String APIKey;
 
     public Merchant(){
@@ -12,16 +12,16 @@ public class Merchant extends SugarRecord{
     }
 
     public Merchant(String name, String APIKey){
-        this.name = name;
+        this.Name = name;
         this.APIKey = APIKey;
     }
 
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.Name = name;
     }
 
     public String getAPIKey() {

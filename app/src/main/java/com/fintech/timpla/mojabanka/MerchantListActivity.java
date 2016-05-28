@@ -12,6 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.backendless.Backendless;
+import com.backendless.BackendlessCollection;
+import com.backendless.async.callback.AsyncCallback;
+import com.backendless.exceptions.BackendlessFault;
+
 import java.util.List;
 
 /**
@@ -35,20 +40,32 @@ public class MerchantListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_merchant_list);
 
-        // TODO remove this
-        for(int i = 0; i < 10; i++){
-            Merchant.save(new Merchant("Pera", "1"));
-        }
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+                Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (toolbar != null) {
             toolbar.setTitle(getTitle());
         }
 
-        View recyclerView = findViewById(R.id.merchant_list);
+        final View recyclerView = findViewById(R.id.merchant_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
+
+        // Fetch all merchants present in the table
+        Backendless.Persistence.of(Merchant.class).find(
+                new AsyncCallback<BackendlessCollection<Merchant>>() {
+
+                    @Override
+                    public void handleResponse(BackendlessCollection<Merchant> response) {
+
+                        Merchant.saveInTx(response.getData());
+                        setupRecyclerView((RecyclerView) recyclerView);
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault fault) {
+                        // TODO handle a fault here
+                    }
+                });
 
         if (findViewById(R.id.merchant_detail_container) != null) {
             // The detail container view will be present only in the
@@ -93,7 +110,7 @@ public class MerchantListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
-                        arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, String.valueOf(holder.mItem.getId()));
+                        arguments.putLong(MerchantDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
                         MerchantDetailFragment fragment = new MerchantDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()

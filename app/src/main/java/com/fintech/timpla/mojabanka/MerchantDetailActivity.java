@@ -42,8 +42,8 @@ public class MerchantDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(MerchantDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(MerchantDetailFragment.ARG_ITEM_ID));
+            arguments.putLong(MerchantDetailFragment.ARG_ITEM_ID,
+                    getIntent().getLongExtra(MerchantDetailFragment.ARG_ITEM_ID, 0));
             MerchantDetailFragment fragment = new MerchantDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

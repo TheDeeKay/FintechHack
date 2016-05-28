@@ -42,7 +42,7 @@ public class MerchantDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = Merchant.findById(Merchant.class, getArguments().getInt(ARG_ITEM_ID));
+            mItem = Merchant.findById(Merchant.class, getArguments().getLong(ARG_ITEM_ID));
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
