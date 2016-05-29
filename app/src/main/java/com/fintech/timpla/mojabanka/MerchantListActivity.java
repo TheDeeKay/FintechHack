@@ -54,9 +54,9 @@ public class MerchantListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        if (!mTwoPane && getIntent().hasExtra(LoginActivity.MERCHANT_APPROVAL_EXTRA))
+        if (!mTwoPane && getIntent().hasExtra(LoginActivity.MERCHANT_ID_APPROVAL_EXTRA))
             launchDetails(
-                    getIntent().getExtras().getString(LoginActivity.MERCHANT_APPROVAL_EXTRA),
+                    getIntent().getExtras().getString(LoginActivity.MERCHANT_ID_APPROVAL_EXTRA),
                     false);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

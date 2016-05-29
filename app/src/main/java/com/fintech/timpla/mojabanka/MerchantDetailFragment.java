@@ -34,7 +34,8 @@ public class MerchantDetailFragment extends Fragment {
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final java.lang.String ARG_ITEM_ID = "item_id";
+    public static final String ARG_ITEM_ID = "item_id";
+    public static final String ARG_USER_NAME = "user_name";
 
     /**
      * The dummy content this fragment is presenting.

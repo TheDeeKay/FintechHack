@@ -1,15 +1,16 @@
 package com.fintech.timpla.mojabanka;
 
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
@@ -20,7 +21,8 @@ import com.backendless.persistence.BackendlessDataQuery;
 
 public class LoginActivity extends AppCompatActivity {
 
-    public static final String MERCHANT_APPROVAL_EXTRA = "MerchantApproval";
+    public static final String MERCHANT_ID_APPROVAL_EXTRA = "MerchantApproval";
+    public static final String MERCHANT_USERNAME_EXTRA = "MerchantUsername";
 
     public static final String LOGIN_PREFERENCES = "login_pref";
 
@@ -31,10 +33,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        final FragmentManager fm = getFragmentManager();
-
-        // TODO it's not covering the whole screen
-        //fm.beginTransaction().add(R.id.login_root, new FragmentWelcome()).commit();
+        final ImageView loadingImage = (ImageView) findViewById(R.id.loading_image);
+        assert loadingImage != null;
+        loadingImage.setVisibility(View.VISIBLE);
 
         /*
         Check whether the user is already logged in with valid credentials
@@ -58,7 +59,7 @@ public class LoginActivity extends AppCompatActivity {
                             if (response != null && response.getData().size() > 0)
                                 loginSuccess();
                             else
-                                fm.popBackStack();
+                                loadingImage.setVisibility(View.INVISIBLE);
 
                         }
 
@@ -66,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void handleFault(BackendlessFault fault) {
                             Toast.makeText(LoginActivity.this,
                                     "Problem sa internet konekcijom", Toast.LENGTH_LONG).show();
-                            fm.popBackStack();
+                            loadingImage.setVisibility(View.INVISIBLE);
                         }
                     });
         }
@@ -188,25 +189,40 @@ public class LoginActivity extends AppCompatActivity {
     The login is successful, end this activity and send the user directly to the list activity
      */
     private void loginSuccess(){
-        if (getIntent().hasExtra(MERCHANT_APPROVAL_EXTRA))
-            loginSuccess(getIntent().getExtras().getString(MERCHANT_APPROVAL_EXTRA));
-        loginSuccess(null);
-    }
 
-    /*
-    The login is successful, we need to redirect the user to the approval screen if there is merchantId
-     */
-    private void loginSuccess(String merchantId){
-        Intent intent;
+        if (getIntent() != null && getIntent().getExtras() != null
+                && getIntent().hasExtra(MERCHANT_ID_APPROVAL_EXTRA) && getIntent().hasExtra(MERCHANT_USERNAME_EXTRA)) {
 
-        intent = new Intent(this, MerchantListActivity.class);
+            FragmentManager fm = getSupportFragmentManager();
+            MerchantDetailFragment fragment = new MerchantDetailFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(MERCHANT_ID_APPROVAL_EXTRA));
+            arguments.putString(MerchantDetailFragment.ARG_USER_NAME, getIntent().getStringExtra(MERCHANT_USERNAME_EXTRA));
+            fragment.setArguments(arguments);
+            fm.beginTransaction().add(R.id.login_root, fragment).commit();
 
-        if (merchantId != null)
-            intent.putExtra(MERCHANT_APPROVAL_EXTRA, merchantId);
+        }
+        else {
+            Intent intent;
 
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent = new Intent(this, MerchantListActivity.class);
 
-        startActivity(intent);
-        finish();
+            if (getIntent() != null && getIntent().getExtras() != null
+                    && getIntent().hasExtra(MERCHANT_ID_APPROVAL_EXTRA) && getIntent().hasExtra(MERCHANT_USERNAME_EXTRA)) {
+
+                FragmentManager fm = getSupportFragmentManager();
+                MerchantDetailFragment fragment = new MerchantDetailFragment();
+                Bundle arguments = new Bundle();
+                arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(MERCHANT_ID_APPROVAL_EXTRA));
+                arguments.putString(MerchantDetailFragment.ARG_USER_NAME, getIntent().getStringExtra(MERCHANT_USERNAME_EXTRA));
+                fragment.setArguments(arguments);
+                fm.beginTransaction().add(R.id.login_root, fragment).commit();
+
+            }
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            startActivity(intent);
+            finish();
+        }
     }
 }
