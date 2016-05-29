@@ -1,6 +1,7 @@
 package com.fintech.timpla.mojabanka;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +41,8 @@ public class MerchantDetailFragment extends Fragment {
      */
     private Merchant mItem;
     private TextView mAuthorizedView;
+    private ProgressDialog mProgressDialog;
+    private Button mButton;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -48,19 +52,15 @@ public class MerchantDetailFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        initLayout();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.merchant_detail, container, false);
 
         mAuthorizedView = (TextView) rootView.findViewById(R.id.merchant_detail);
+        mButton = (Button) rootView.findViewById(R.id.detail_approve_button);
 
+        mProgressDialog = new ProgressDialog(getActivity());
+        mProgressDialog.show();
         initLayout();
 
         return rootView;
@@ -80,10 +80,32 @@ public class MerchantDetailFragment extends Fragment {
             Backendless.Persistence.of(Authorization.class).find(query,
                     new AsyncCallback<BackendlessCollection<Authorization>>() {
                         @Override
-                        public void handleResponse(BackendlessCollection<Authorization> response) {
+                        public void handleResponse(final BackendlessCollection<Authorization> response) {
 
-                            mAuthorizedView.setText(
-                                    String.valueOf(response != null && response.getData().size() > 0));
+                            if (response != null && response.getData().size() > 0) {
+                                mAuthorizedView.setText("Odobren");
+                                mButton.setText("Ukloni");
+
+                                mButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Authorization auth = response.getData().get(0);
+                                        unauthorize(auth);
+                                    }
+                                });
+                            }
+                            else {
+                                mAuthorizedView.setText("Nije odobren");
+                                mButton.setText("Odobri");
+
+                                mButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        authorize();
+                                    }
+                                });
+                            }
+                            mProgressDialog.dismiss();
                         }
 
                         @Override
@@ -95,6 +117,10 @@ public class MerchantDetailFragment extends Fragment {
 
 
     private void initLayout(){
+
+        if (getActivity() instanceof MerchantListActivity)
+            ((MerchantListActivity) getActivity()).setupRecyclerView(((MerchantListActivity) getActivity()).mRecyclerView);
+
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
@@ -132,6 +158,52 @@ public class MerchantDetailFragment extends Fragment {
                     public void handleFault(BackendlessFault fault) {
                         Toast.makeText(MerchantDetailFragment.this.getActivity(), "Nema interneta",
                                 Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+
+    private void authorize(){
+        mProgressDialog.show();
+        SharedPreferences sharedPref = getActivity().getSharedPreferences(
+                LoginActivity.LOGIN_PREFERENCES, Context.MODE_PRIVATE
+        );
+        Authorization auth = new Authorization();
+        auth.setUserName("Baja"); // TODO placeholder
+        auth.setBankAccount(sharedPref.getString("BankAccount", ""));
+        auth.setCipheredBankAccount(sharedPref.getString("BankAccount", ""));
+        auth.setMerchantId(mItem.getObjectId());
+
+        Backendless.Persistence.of(Authorization.class).save(auth,
+                new AsyncCallback<Authorization>() {
+                    @Override
+                    public void handleResponse(Authorization response) {
+                        SugarRecord.save(response);
+                        initLayout();
+                        mProgressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault fault) {
+                        mProgressDialog.dismiss();
+                    }
+                });
+    }
+
+    private void unauthorize(final Authorization auth){
+        mProgressDialog.show();
+        Backendless.Persistence.of(Authorization.class).remove(auth,
+                new AsyncCallback<Long>() {
+                    @Override
+                    public void handleResponse(Long response) {
+                        SugarRecord.delete(auth);
+                        initLayout();
+                        mProgressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault fault) {
+                        mProgressDialog.dismiss();
                     }
                 });
     }

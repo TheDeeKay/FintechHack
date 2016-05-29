@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +39,7 @@ public class MerchantListActivity extends AppCompatActivity {
      * device.
      */
     private boolean mTwoPane;
-    private RecyclerView mRecyclerView;
+    public RecyclerView mRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +70,16 @@ public class MerchantListActivity extends AppCompatActivity {
         setupRecyclerView(mRecyclerView);
 
         fetchMerchants();
-        fetchAuthorizations();
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mRecyclerView != null)
+            fetchAuthorizations();
+    }
+
+    public void setupRecyclerView(@NonNull RecyclerView recyclerView) {
 
         List<Merchant> merchants = SugarRecord.listAll(Merchant.class);
 
@@ -107,7 +114,12 @@ public class MerchantListActivity extends AppCompatActivity {
                 new AsyncCallback<BackendlessCollection<Authorization>>() {
                     @Override
                     public void handleResponse(BackendlessCollection<Authorization> response) {
-                        SugarRecord.saveInTx(response.getData());
+                        SugarRecord.deleteAll(Authorization.class);
+
+                        for (Authorization auth:response.getData()
+                                ) {
+                            SugarRecord.save(auth);
+                        }
                         setupRecyclerView(mRecyclerView);
                     }
 
@@ -120,7 +132,7 @@ public class MerchantListActivity extends AppCompatActivity {
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<Merchant> mValues;
+        private List<Merchant> mValues;
 
         public SimpleItemRecyclerViewAdapter(List<Merchant> items) {
             mValues = items;
@@ -135,11 +147,19 @@ public class MerchantListActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
+            SharedPreferences sp = getSharedPreferences(LoginActivity.LOGIN_PREFERENCES, MODE_PRIVATE);
+            String bank = sp.getString("BankAccount", "");
             holder.mItem = mValues.get(position);
             holder.mContentView.setText(mValues.get(position).getName());
 
-            List<Authorization> authorization = SugarRecord.find(Authorization.class, "Merchant_Id = ?",
-                    String.valueOf(holder.mItem.getObjectId()));
+            List<Authorization> authorization = SugarRecord.find(Authorization.class, "Merchant_Id = ? " +
+                    "AND Bank_Account = ?",
+                    holder.mItem.getObjectId(), bank);
+
+            for (Authorization auth:authorization
+                 ) {
+                Log.e("Auth", auth.getMerchantId());
+            }
 
             // TODO ulepšati ovo
             if (authorization.size() < 1)
