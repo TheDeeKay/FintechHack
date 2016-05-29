@@ -4,4 +4,5 @@
     <string name="title_merchant_detail">Merchant Detail</string>
     <string name="APPID">F0092EF9-936A-E40F-FFDA-947FE585F300</string>
     <string name="SEC_KEY">040B9A44-E36F-6DB8-FF71-A49CB0E82200</string>
+    <string name="title_login">Login</string>
 </resources>
