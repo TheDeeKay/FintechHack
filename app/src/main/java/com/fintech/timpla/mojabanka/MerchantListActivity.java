@@ -2,6 +2,7 @@ package com.fintech.timpla.mojabanka;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -44,6 +45,19 @@ public class MerchantListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_merchant_list);
 
+        if (findViewById(R.id.merchant_detail_container) != null) {
+            // The detail container view will be present only in the
+            // large-screen layouts (res/values-w900dp).
+            // If this view is present, then the
+            // activity should be in two-pane mode.
+            mTwoPane = true;
+        }
+
+        if (!mTwoPane && getIntent().hasExtra(LoginActivity.MERCHANT_APPROVAL_EXTRA))
+            launchDetails(
+                    getIntent().getExtras().getString(LoginActivity.MERCHANT_APPROVAL_EXTRA),
+                    false);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (toolbar != null) {
@@ -52,18 +66,10 @@ public class MerchantListActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.merchant_list);
         assert mRecyclerView != null;
-        setupRecyclerView((RecyclerView) mRecyclerView);
+        setupRecyclerView(mRecyclerView);
 
         fetchMerchants();
         fetchAuthorizations();
-
-        if (findViewById(R.id.merchant_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            mTwoPane = true;
-        }
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -87,7 +93,6 @@ public class MerchantListActivity extends AppCompatActivity {
 
                     @Override
                     public void handleFault(BackendlessFault fault) {
-                        // TODO handle a fault here
                     }
                 });
     }
@@ -95,7 +100,8 @@ public class MerchantListActivity extends AppCompatActivity {
     // Fetch all authorizations tied to our user
     private void fetchAuthorizations(){
         BackendlessDataQuery query = new BackendlessDataQuery();
-        String whereClause = "BankAccount = " + "111"; //TODO set correct bank account
+        SharedPreferences sharedPref = getSharedPreferences(LoginActivity.LOGIN_PREFERENCES, MODE_PRIVATE);
+        String whereClause = "BankAccount = '" + sharedPref.getString("BankAccount", "") + "'";
         query.setWhereClause(whereClause);
         Backendless.Persistence.of(Authorization.class).find(query,
                 new AsyncCallback<BackendlessCollection<Authorization>>() {
@@ -107,7 +113,6 @@ public class MerchantListActivity extends AppCompatActivity {
 
                     @Override
                     public void handleFault(BackendlessFault fault) {
-                        // TODO handle this fault
                     }
                 });
     }
@@ -131,7 +136,6 @@ public class MerchantListActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            // TODO holder.mIdView.setText(Merchant.valueOf(mValues.get(position).getId()));
             holder.mContentView.setText(mValues.get(position).getName());
 
             List<Authorization> authorization = SugarRecord.find(Authorization.class, "Merchant_Id = ?",
@@ -146,21 +150,8 @@ public class MerchantListActivity extends AppCompatActivity {
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putLong(MerchantDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
-                        MerchantDetailFragment fragment = new MerchantDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.merchant_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, MerchantDetailActivity.class);
-                        intent.putExtra(MerchantDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
 
-                        context.startActivity(intent);
-                    }
+                    launchDetails(holder.mItem.getObjectId(), true);
                 }
             });
         }
@@ -189,6 +180,30 @@ public class MerchantListActivity extends AppCompatActivity {
             public java.lang.String toString() {
                 return super.toString() + " '" + mContentView.getText() + "'";
             }
+        }
+    }
+
+    private void launchDetails(String objectId, boolean backStack){
+        if (mTwoPane) {
+            Bundle arguments = new Bundle();
+            arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, objectId);
+            MerchantDetailFragment fragment = new MerchantDetailFragment();
+            fragment.setArguments(arguments);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.merchant_detail_container, fragment)
+                    .commit();
+        } else {
+            Context context = MerchantListActivity.this;
+            Intent intent = new Intent(context, MerchantDetailActivity.class);
+            intent.putExtra(MerchantDetailFragment.ARG_ITEM_ID, objectId);
+
+            if (!backStack)
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            context.startActivity(intent);
+
+            if (!backStack)
+                finish();
         }
     }
 }

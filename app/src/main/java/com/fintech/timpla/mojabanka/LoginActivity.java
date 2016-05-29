@@ -33,7 +33,8 @@ public class LoginActivity extends AppCompatActivity {
 
         final FragmentManager fm = getFragmentManager();
 
-        // TODO Add a Fragment
+        // TODO it's not covering the whole screen
+        //fm.beginTransaction().add(R.id.login_root, new FragmentWelcome()).commit();
 
         /*
         Check whether the user is already logged in with valid credentials
@@ -187,6 +188,8 @@ public class LoginActivity extends AppCompatActivity {
     The login is successful, end this activity and send the user directly to the list activity
      */
     private void loginSuccess(){
+        if (getIntent().hasExtra(MERCHANT_APPROVAL_EXTRA))
+            loginSuccess(getIntent().getExtras().getString(MERCHANT_APPROVAL_EXTRA));
         loginSuccess(null);
     }
 
@@ -194,11 +197,14 @@ public class LoginActivity extends AppCompatActivity {
     The login is successful, we need to redirect the user to the approval screen if there is merchantId
      */
     private void loginSuccess(String merchantId){
-        Intent intent = new Intent(LoginActivity.this, MerchantListActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        Intent intent;
+
+        intent = new Intent(this, MerchantListActivity.class);
 
         if (merchantId != null)
             intent.putExtra(MERCHANT_APPROVAL_EXTRA, merchantId);
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         startActivity(intent);
         finish();
