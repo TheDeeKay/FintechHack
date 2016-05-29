@@ -48,7 +48,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="com.fintech.timpla.mojabanka.intent.action.Launch"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>

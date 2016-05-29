@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
@@ -20,6 +20,8 @@ import com.backendless.exceptions.BackendlessFault;
 import com.backendless.persistence.BackendlessDataQuery;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private RelativeLayout mImage;
 
     public static final String MERCHANT_ID_APPROVAL_EXTRA = "MerchantApproval";
     public static final String MERCHANT_USERNAME_EXTRA = "MerchantUsername";
@@ -33,15 +35,17 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        final ImageView loadingImage = (ImageView) findViewById(R.id.loading_image);
-        assert loadingImage != null;
-        loadingImage.setVisibility(View.VISIBLE);
+        final RelativeLayout loadingImage = (RelativeLayout) findViewById(R.id.loading_image);
+        mImage = loadingImage;
+        loadingImage.setVisibility(View.INVISIBLE);
 
         /*
         Check whether the user is already logged in with valid credentials
          */
         SharedPreferences loginPref = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
         if (loginPref.getString("EMail", null) != null) {
+
+            loadingImage.setVisibility(View.VISIBLE);
 
             BackendlessDataQuery query = new BackendlessDataQuery();
 
@@ -189,6 +193,9 @@ public class LoginActivity extends AppCompatActivity {
     The login is successful, end this activity and send the user directly to the list activity
      */
     private void loginSuccess(){
+
+        if (mImage != null)
+            mImage.setVisibility(View.INVISIBLE);
 
         if (getIntent() != null && getIntent().getExtras() != null
                 && getIntent().hasExtra(MERCHANT_ID_APPROVAL_EXTRA) && getIntent().hasExtra(MERCHANT_USERNAME_EXTRA)) {

@@ -170,7 +170,7 @@ public class MerchantDetailFragment extends Fragment {
                 LoginActivity.LOGIN_PREFERENCES, Context.MODE_PRIVATE
         );
         Authorization auth = new Authorization();
-        auth.setUserName("Baja"); // TODO placeholder
+        auth.setUserName(getArguments().getString(ARG_USER_NAME));
         auth.setBankAccount(sharedPref.getString("BankAccount", ""));
         auth.setCipheredBankAccount(sharedPref.getString("BankAccount", ""));
         auth.setMerchantId(mItem.getObjectId());
