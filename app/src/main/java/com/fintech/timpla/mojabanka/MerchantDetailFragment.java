@@ -61,6 +61,7 @@ public class MerchantDetailFragment extends Fragment {
         mButton = (Button) rootView.findViewById(R.id.detail_approve_button);
 
         mProgressDialog = new ProgressDialog(getActivity());
+        mProgressDialog.setMessage("Molimo sačekajte...");
         mProgressDialog.show();
         initLayout();
 

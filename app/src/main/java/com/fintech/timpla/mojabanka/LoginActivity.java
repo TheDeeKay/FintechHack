@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -54,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
             String bankAccount = loginPref.getString("BankAccount", "");
 
             query.setWhereClause("EMail = '" + email + "' AND Password = '" + password
-            + "' AND BankAccount = '" + bankAccount + "'");
+                    + "' AND BankAccount = '" + bankAccount + "'");
 
             Backendless.Persistence.of(BankUser.class).find(query,
                     new AsyncCallback<BackendlessCollection<BankUser>>() {
@@ -87,6 +86,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(final View v) {
 
                 mProgDialog = new ProgressDialog(LoginActivity.this);
+                mProgDialog.setMessage("Molimo sačekajte...");
                 mProgDialog.show();
 
                 v.setClickable(false);
@@ -150,20 +150,20 @@ public class LoginActivity extends AppCompatActivity {
     /*
     Checks for basic email validity
      */
-    public boolean validateEmail(String email){
+    public boolean validateEmail(String email) {
         if (email == null || email.isEmpty())
             return false;
 
         int monkeyIndex = email.indexOf('@');
 
-        if (monkeyIndex == -1 || email.indexOf('@', monkeyIndex+1) != -1)
+        if (monkeyIndex == -1 || email.indexOf('@', monkeyIndex + 1) != -1)
             return false;
 
         int dotIndex = email.indexOf('.');
-        if (dotIndex == -1 || email.indexOf('.', dotIndex+1) != -1)
+        if (dotIndex == -1 || email.indexOf('.', dotIndex + 1) != -1)
             return false;
 
-        if((monkeyIndex == 0) || (dotIndex - monkeyIndex < 2) || (dotIndex == email.length() - 1))
+        if ((monkeyIndex == 0) || (dotIndex - monkeyIndex < 2) || (dotIndex == email.length() - 1))
             return false;
 
         return true;
@@ -172,7 +172,7 @@ public class LoginActivity extends AppCompatActivity {
     /*
     Checks for basic password validity
      */
-    public boolean validatePassword(String password){
+    public boolean validatePassword(String password) {
         if (password == null || password.length() < 6)
             return false;
 
@@ -182,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
     /*
     The login has failed, reactivate button and inform user of the problem
      */
-    private void loginFailed(View button, String message){
+    private void loginFailed(View button, String message) {
         button.setClickable(true);
         mProgDialog.dismiss();
 
@@ -192,44 +192,27 @@ public class LoginActivity extends AppCompatActivity {
     /*
     The login is successful, end this activity and send the user directly to the list activity
      */
-    private void loginSuccess(){
+    private void loginSuccess() {
 
         if (mImage != null)
             mImage.setVisibility(View.INVISIBLE);
 
-        if (getIntent() != null && getIntent().getExtras() != null
-                && getIntent().hasExtra(MERCHANT_ID_APPROVAL_EXTRA) && getIntent().hasExtra(MERCHANT_USERNAME_EXTRA)) {
-
-            FragmentManager fm = getSupportFragmentManager();
-            MerchantDetailFragment fragment = new MerchantDetailFragment();
-            Bundle arguments = new Bundle();
-            arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(MERCHANT_ID_APPROVAL_EXTRA));
-            arguments.putString(MerchantDetailFragment.ARG_USER_NAME, getIntent().getStringExtra(MERCHANT_USERNAME_EXTRA));
-            fragment.setArguments(arguments);
-            fm.beginTransaction().add(R.id.login_root, fragment).commit();
-
-        }
-        else {
+        if (getIntent() != null && getIntent().getExtras() != null){
             Intent intent;
 
-            intent = new Intent(this, MerchantListActivity.class);
+            intent = new Intent(this, MerchantDetailActivity.class);
+            intent.putExtra(MERCHANT_ID_APPROVAL_EXTRA, getIntent().getStringExtra(MERCHANT_ID_APPROVAL_EXTRA));
+            intent.putExtra(MERCHANT_USERNAME_EXTRA, getIntent().getStringExtra(MERCHANT_USERNAME_EXTRA));
 
-            if (getIntent() != null && getIntent().getExtras() != null
-                    && getIntent().hasExtra(MERCHANT_ID_APPROVAL_EXTRA) && getIntent().hasExtra(MERCHANT_USERNAME_EXTRA)) {
 
-                FragmentManager fm = getSupportFragmentManager();
-                MerchantDetailFragment fragment = new MerchantDetailFragment();
-                Bundle arguments = new Bundle();
-                arguments.putString(MerchantDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(MERCHANT_ID_APPROVAL_EXTRA));
-                arguments.putString(MerchantDetailFragment.ARG_USER_NAME, getIntent().getStringExtra(MERCHANT_USERNAME_EXTRA));
-                fragment.setArguments(arguments);
-                fm.beginTransaction().add(R.id.login_root, fragment).commit();
-
-            }
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
             startActivity(intent);
+
             finish();
         }
+        else
+            startActivity(new Intent(this, MerchantListActivity.class));
     }
 }
+

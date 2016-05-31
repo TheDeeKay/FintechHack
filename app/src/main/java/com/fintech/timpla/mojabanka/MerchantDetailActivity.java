@@ -43,7 +43,9 @@ public class MerchantDetailActivity extends AppCompatActivity {
             // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(MerchantDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(MerchantDetailFragment.ARG_ITEM_ID));
+                    getIntent().getStringExtra(LoginActivity.MERCHANT_ID_APPROVAL_EXTRA));
+            arguments.putString(MerchantDetailFragment.ARG_USER_NAME,
+                    getIntent().getStringExtra(LoginActivity.MERCHANT_USERNAME_EXTRA));
             MerchantDetailFragment fragment = new MerchantDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
